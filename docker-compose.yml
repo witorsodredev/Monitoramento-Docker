@@ -28,7 +28,7 @@ services:
       - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro,z
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     # Teto de recursos para proteger os workloads da maquina:
     mem_limit: 1g
     networks:
@@ -43,7 +43,7 @@ services:
     volumes:
       - /:/host:ro,rslave
     ports:
-      - "9100:9100"
+      - "127.0.0.1:9100:9100"
     mem_limit: 128m
     networks:
       - monitoring
@@ -65,7 +65,7 @@ services:
       - /var/lib/containers:/var/lib/containers:ro   # Podman (equivalente ao /var/lib/docker)
       - /dev/disk:/dev/disk:ro
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     mem_limit: 256m
     networks:
       - monitoring
@@ -82,7 +82,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro,z
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     mem_limit: 256m
     depends_on:
       - prometheus
