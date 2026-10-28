@@ -89,7 +89,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro,z
     ports:
       - "127.0.0.1:3000:3000"
-    mem_limit: 256m
+    mem_limit: 1000m
     depends_on:
       - prometheus
     networks:
