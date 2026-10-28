@@ -20,8 +20,6 @@ services:
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
-      - source: prometheus_alerts
-        target: /etc/prometheus/alerts.yml
     volumes:
       - prometheus-data:/prometheus
     ports:
