@@ -1,0 +1,98 @@
+# Stack de monitoramento de containers para Podman Compose (Ubuntu Server)
+# Uso: podman-compose up -d
+#
+# Componentes:
+#   - cAdvisor      : metricas POR container (CPU, RAM, rede, I/O)
+#   - node-exporter : metricas do host (CPU, RAM, disco, swap)
+#   - prometheus    : coleta e armazena as series temporais
+#   - grafana       : dashboards + alertas
+#
+# Dimensionado para no de 8 GB / 4 vCPU: retencao curta no Prometheus.
+
+version: "3.8"
+
+services:
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      # Retencao curta para nao estourar disco/RAM em no de 8 GB:
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=2GB"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro,z
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    # Teto de recursos para proteger os workloads da maquina:
+    mem_limit: 1g
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: docker.io/prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "9100:9100"
+    mem_limit: 128m
+    networks:
+      - monitoring
+
+  cadvisor:
+    # Imagem oficial do Google; a tag do gcr costuma funcionar melhor com cgroups v2.
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    # Podman: cAdvisor precisa acessar cgroups e o runtime. Rodar privilegiado
+    # resolve a maioria dos casos de "no container metrics" em Ubuntu com cgroups v2.
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/containers:/var/lib/containers:ro   # Podman (equivalente ao /var/lib/docker)
+      - /dev/disk:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    mem_limit: 256m
+    networks:
+      - monitoring
+
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=changeme   # TROCAR antes de subir
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro,z
+    ports:
+      - "3000:3000"
+    mem_limit: 256m
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  monitoring:
+    driver: bridge
