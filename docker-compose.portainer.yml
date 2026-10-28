@@ -49,6 +49,9 @@ services:
     container_name: cadvisor
     restart: unless-stopped
     privileged: true
+    # cgroup namespace do host: sem isso o cAdvisor so ve o proprio cgroup e
+    # nao enxerga os outros containers em /sys/fs/cgroup/machine.slice.
+    cgroup: host
     devices:
       - /dev/kmsg
     volumes:
@@ -102,6 +105,10 @@ configs:
         - job_name: cadvisor
           static_configs:
             - targets: ["cadvisor:8080"]
+          metric_relabel_configs:
+            - source_labels: [id]
+              regex: ".+/"
+              action: drop
 
   prometheus_alerts:
     content: |

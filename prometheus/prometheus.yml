@@ -18,3 +18,9 @@ scrape_configs:
   - job_name: cadvisor
     static_configs:
       - targets: ["cadvisor:8080"]
+    # Com Podman o cAdvisor exporta cada container duas vezes (id ".scope" e
+    # ".scope/"); descarta a copia para nao dobrar somas nos dashboards.
+    metric_relabel_configs:
+      - source_labels: [id]
+        regex: ".+/"
+        action: drop

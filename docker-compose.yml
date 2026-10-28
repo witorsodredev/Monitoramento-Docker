@@ -56,6 +56,9 @@ services:
     # Podman: cAdvisor precisa acessar cgroups e o runtime. Rodar privilegiado
     # resolve a maioria dos casos de "no container metrics" em Ubuntu com cgroups v2.
     privileged: true
+    # cgroup namespace do host: sem isso o cAdvisor so ve o proprio cgroup e
+    # nao enxerga os outros containers em /sys/fs/cgroup/machine.slice.
+    cgroup: host
     devices:
       - /dev/kmsg
     volumes:
