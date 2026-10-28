@@ -58,6 +58,9 @@ services:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
+      # Bind do cgroup do host: o Portainer (API Docker do Podman) ignora `cgroup: host`,
+      # entao montamos a hierarquia do host direto para o cAdvisor ver machine.slice.
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /var/lib/containers:/var/lib/containers:ro
       - /dev/disk:/dev/disk:ro
     ports:
