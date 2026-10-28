@@ -11,7 +11,7 @@ groups:
           description: "Uso de memoria em {{ $value | printf \"%.1f\" }}% por mais de 5 min (no de 8 GB)."
 
       - alert: HostCpuAlta
-        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) > 80
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 10m
         labels:
           severity: warning
@@ -20,7 +20,7 @@ groups:
           description: "CPU sustentada em {{ $value | printf \"%.1f\" }}% por mais de 10 min (4 vCPU)."
 
       - alert: HostDiscoCheio
-        expr: (1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})) * 100 > 85
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 85
         for: 5m
         labels:
           severity: warning
@@ -40,7 +40,7 @@ groups:
   - name: container-alerts
     rules:
       - alert: ContainerDown
-        expr: absent(container_last_seen) or (time() - container_last_seen{name!=\"\"} > 60)
+        expr: absent(container_last_seen) or (time() - container_last_seen{name!=""} > 60)
         for: 2m
         labels:
           severity: critical
@@ -49,7 +49,7 @@ groups:
           description: "Container {{ $labels.name }} parou de reportar (possivel crash/stop)."
 
       - alert: ContainerMemoriaAlta
-        expr: (container_memory_usage_bytes{name!=\"\"} / container_spec_memory_limit_bytes{name!=\"\"}) * 100 > 85
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 85
         for: 5m
         labels:
           severity: warning
@@ -58,7 +58,7 @@ groups:
           description: "Container {{ $labels.name }} em {{ $value | printf \"%.1f\" }}% do limite (risco de OOMKill)."
 
       - alert: ContainerCpuAlta
-        expr: (sum by (name) (rate(container_cpu_usage_seconds_total{name!=\"\"}[5m])) * 100) > 80
+        expr: (sum by (name) (rate(container_cpu_usage_seconds_total{name!=""}[5m])) * 100) > 80
         for: 10m
         labels:
           severity: warning
